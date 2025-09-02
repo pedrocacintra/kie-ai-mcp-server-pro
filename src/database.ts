@@ -1,5 +1,4 @@
 import sqlite3 from 'sqlite3';
-import { promisify } from 'util';
 import { TaskRecord } from './types.js';
 
 export class TaskDatabase {
@@ -10,55 +9,54 @@ export class TaskDatabase {
     this.initializeDatabase();
   }
 
-  private async initializeDatabase(): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
-    
-    await run(`
-      CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        task_id TEXT UNIQUE NOT NULL,
-        api_type TEXT NOT NULL,
-        status TEXT DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        result_url TEXT,
-        error_message TEXT
-      )
-    `);
+  private initializeDatabase(): void {
+    this.db.serialize(() => {
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS tasks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          task_id TEXT UNIQUE NOT NULL,
+          api_type TEXT NOT NULL,
+          status TEXT DEFAULT 'pending',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          result_url TEXT,
+          error_message TEXT
+        )
+      `);
 
-    await run(`
-      CREATE INDEX IF NOT EXISTS idx_task_id ON tasks(task_id);
-    `);
-
-    await run(`
-      CREATE INDEX IF NOT EXISTS idx_status ON tasks(status);
-    `);
+      this.db.run(`CREATE INDEX IF NOT EXISTS idx_task_id ON tasks(task_id)`);
+      this.db.run(`CREATE INDEX IF NOT EXISTS idx_status ON tasks(status)`);
+    });
   }
 
   async createTask(taskData: Omit<TaskRecord, 'id' | 'created_at' | 'updated_at'>): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
-    
-    await run(
-      `INSERT INTO tasks (task_id, api_type, status, result_url, error_message) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [taskData.task_id, taskData.api_type, taskData.status, taskData.result_url, taskData.error_message]
-    );
+    return new Promise((resolve, reject) => {
+      this.db.run(
+        `INSERT INTO tasks (task_id, api_type, status, result_url, error_message) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [taskData.task_id, taskData.api_type, taskData.status, taskData.result_url || null, taskData.error_message || null],
+        function(err) {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
   }
 
   async getTask(taskId: string): Promise<TaskRecord | null> {
-    const get = promisify(this.db.get.bind(this.db));
-    
-    const result = await get(
-      `SELECT * FROM tasks WHERE task_id = ?`,
-      [taskId]
-    ) as TaskRecord | undefined;
-
-    return result || null;
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        `SELECT * FROM tasks WHERE task_id = ?`,
+        [taskId],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row as TaskRecord || null);
+        }
+      );
+    });
   }
 
   async updateTask(taskId: string, updates: Partial<TaskRecord>): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
-    
     const updateFields: string[] = [];
     const values: any[] = [];
     
@@ -80,38 +78,52 @@ export class TaskDatabase {
     updateFields.push('updated_at = CURRENT_TIMESTAMP');
     values.push(taskId);
     
-    if (updateFields.length > 1) { // More than just updated_at
-      await run(
-        `UPDATE tasks SET ${updateFields.join(', ')} WHERE task_id = ?`,
-        values
-      );
+    if (updateFields.length > 1) {
+      return new Promise((resolve, reject) => {
+        this.db.run(
+          `UPDATE tasks SET ${updateFields.join(', ')} WHERE task_id = ?`,
+          values,
+          function(err) {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
     }
   }
 
   async getAllTasks(limit: number = 100): Promise<TaskRecord[]> {
-    const all = promisify(this.db.all.bind(this.db));
-    
-    const results = await all(
-      `SELECT * FROM tasks ORDER BY created_at DESC LIMIT ?`,
-      [limit]
-    ) as TaskRecord[];
-
-    return results;
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        `SELECT * FROM tasks ORDER BY created_at DESC LIMIT ?`,
+        [limit],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows as TaskRecord[]);
+        }
+      );
+    });
   }
 
   async getTasksByStatus(status: string, limit: number = 50): Promise<TaskRecord[]> {
-    const all = promisify(this.db.all.bind(this.db));
-    
-    const results = await all(
-      `SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC LIMIT ?`,
-      [status, limit]
-    ) as TaskRecord[];
-
-    return results;
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        `SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC LIMIT ?`,
+        [status, limit],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows as TaskRecord[]);
+        }
+      );
+    });
   }
 
   async close(): Promise<void> {
-    const close = promisify(this.db.close.bind(this.db));
-    await close();
+    return new Promise((resolve, reject) => {
+      this.db.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
   }
 }

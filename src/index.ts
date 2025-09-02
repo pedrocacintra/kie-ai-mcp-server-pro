@@ -24,17 +24,10 @@ class KieAiMcpServer {
   private db: TaskDatabase;
 
   constructor() {
-    this.server = new Server(
-      {
-        name: 'kie-ai-mcp-server',
-        version: '1.0.0',
-      },
-      {
-        capabilities: {
-          tools: {},
-        },
-      }
-    );
+    this.server = new Server({
+      name: 'kie-ai-mcp-server',
+      version: '1.0.0',
+    });
 
     // Initialize client with config from environment
     const config: KieAiConfig = {
@@ -179,6 +172,25 @@ class KieAiMcpServer {
                 }
               }
             }
+          },
+          {
+            name: 'get_veo3_1080p_video',
+            description: 'Get 1080P high-definition version of a Veo3 video (not available for fallback mode videos)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                task_id: {
+                  type: 'string',
+                  description: 'Veo3 task ID to get 1080p video for'
+                },
+                index: {
+                  type: 'integer',
+                  description: 'Video index (optional, for multiple video results)',
+                  minimum: 0
+                }
+              },
+              required: ['task_id']
+            }
           }
         ]
       };
@@ -204,6 +216,9 @@ class KieAiMcpServer {
           case 'list_tasks':
             return await this.handleListTasks(args);
           
+          case 'get_veo3_1080p_video':
+            return await this.handleGetVeo1080pVideo(args);
+          
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
@@ -225,7 +240,7 @@ class KieAiMcpServer {
     const request = NanoBananaGenerateSchema.parse(args);
     
     try {
-      const response = await this.client.generateNanaBanana(request);
+      const response = await this.client.generateNanoBanana(request);
       
       if (response.data?.taskId) {
         await this.db.createTask({
@@ -268,7 +283,7 @@ class KieAiMcpServer {
     const request = NanoBananaEditSchema.parse(args);
     
     try {
-      const response = await this.client.editNanaBanana(request);
+      const response = await this.client.editNanoBanana(request);
       
       if (response.data?.taskId) {
         await this.db.createTask({
@@ -425,6 +440,46 @@ class KieAiMcpServer {
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to list tasks';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: message
+            }, null, 2)
+          }
+        ]
+      };
+    }
+  }
+
+  private async handleGetVeo1080pVideo(args: any) {
+    const { task_id, index } = args;
+    
+    if (!task_id || typeof task_id !== 'string') {
+      throw new McpError(ErrorCode.InvalidParams, 'task_id is required and must be a string');
+    }
+    
+    try {
+      const response = await this.client.getVeo1080pVideo(task_id, index);
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              task_id: task_id,
+              response: response,
+              message: 'Retrieved 1080p video URL',
+              note: 'Not available for videos generated with fallback mode'
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get 1080p video';
       return {
         content: [
           {

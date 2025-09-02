@@ -1,5 +1,5 @@
 {
-  "name": "kie-ai-mcp-server",
+  "name": "@andrewlwn77/kie-ai-mcp-server",
   "version": "1.0.0",
   "description": "MCP server for Kie.ai APIs (Nano Banana image generation/editing and Veo3 video generation)",
   "main": "dist/index.js",
@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "mcp",
@@ -17,10 +18,19 @@
     "image-generation",
     "video-generation",
     "nano-banana",
-    "veo3"
+    "veo3",
+    "model-context-protocol"
   ],
-  "author": "BMAD Development",
+  "author": "andrewlwn77",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewlwn77/kie-ai-mcp-server.git"
+  },
+  "homepage": "https://github.com/andrewlwn77/kie-ai-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/andrewlwn77/kie-ai-mcp-server/issues"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.4.0",
     "sqlite3": "^5.1.6",

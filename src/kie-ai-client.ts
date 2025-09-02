@@ -55,21 +55,46 @@ export class KieAiClient {
   }
 
   async generateNanoBanana(request: NanoBananaGenerateRequest): Promise<KieAiResponse<ImageResponse>> {
-    // Note: Actual endpoint needs verification - using placeholder based on UI discovery
-    return this.makeRequest<ImageResponse>('/nano-banana/generate', 'POST', request);
+    const playgroundRequest = {
+      model: 'google/nano-banana',
+      input: {
+        prompt: request.prompt
+      }
+    };
+    return this.makeRequest<ImageResponse>('/playground/createTask', 'POST', playgroundRequest);
   }
 
-  async editNanaBanana(request: NanaBananaEditRequest): Promise<KieAiResponse<ImageResponse>> {
-    // Note: Actual endpoint needs verification - using placeholder based on UI discovery
-    return this.makeRequest<ImageResponse>('/nano-banana-edit/generate', 'POST', request);
+  async editNanoBanana(request: NanaBananaEditRequest): Promise<KieAiResponse<ImageResponse>> {
+    const playgroundRequest = {
+      model: 'google/nano-banana-edit',
+      input: {
+        prompt: request.prompt,
+        image_urls: request.image_urls
+      }
+    };
+    return this.makeRequest<ImageResponse>('/playground/createTask', 'POST', playgroundRequest);
   }
 
   async generateVeo3Video(request: Veo3GenerateRequest): Promise<KieAiResponse<TaskResponse>> {
     return this.makeRequest<TaskResponse>('/veo/generate', 'POST', request);
   }
 
-  // Placeholder for task status polling - actual endpoint needs discovery
   async getTaskStatus(taskId: string): Promise<KieAiResponse<any>> {
-    return this.makeRequest<any>(`/task/${taskId}`, 'GET');
+    // Check if it's a Veo3 task (longer task IDs) or playground task (Nano Banana)
+    if (taskId.length > 20) {
+      // Veo3 task - use veo endpoint
+      return this.makeRequest<any>(`/veo/record-info?taskId=${taskId}`, 'GET');
+    } else {
+      // Playground task - use playground endpoint  
+      return this.makeRequest<any>(`/playground/recordInfo?taskId=${taskId}`, 'GET');
+    }
+  }
+
+  async getVeo1080pVideo(taskId: string, index?: number): Promise<KieAiResponse<any>> {
+    const params = new URLSearchParams({ taskId });
+    if (index !== undefined) {
+      params.append('index', index.toString());
+    }
+    return this.makeRequest<any>(`/veo/get-1080p-video?${params}`, 'GET');
   }
 }

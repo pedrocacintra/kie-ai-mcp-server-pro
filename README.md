@@ -7,7 +7,9 @@ An MCP (Model Context Protocol) server that provides access to Kie.ai's AI APIs 
 - **Nano Banana Image Generation**: Text-to-image generation using Google's Gemini 2.5 Flash Image Preview
 - **Nano Banana Image Editing**: Natural language image editing with up to 5 input images
 - **Veo3 Video Generation**: Professional-quality video generation with text-to-video and image-to-video capabilities
+- **1080p Video Upgrade**: Get high-definition versions of Veo3 videos
 - **Task Management**: SQLite-based task tracking with status polling
+- **Smart Endpoint Routing**: Automatic detection of task types for status checking
 - **Error Handling**: Comprehensive error handling and validation
 
 ## Prerequisites
@@ -17,8 +19,17 @@ An MCP (Model Context Protocol) server that provides access to Kie.ai's AI APIs 
 
 ## Installation
 
+### From NPM
+
 ```bash
-# Clone or navigate to the server directory
+npm install -g @andrewlwn77/kie-ai-mcp-server
+```
+
+### From Source
+
+```bash
+# Clone the repository
+git clone https://github.com/andrewlwn77/kie-ai-mcp-server.git
 cd kie-ai-mcp-server
 
 # Install dependencies
@@ -30,7 +41,7 @@ npm run build
 
 ## Configuration
 
-Set the following environment variables:
+### Environment Variables
 
 ```bash
 # Required
@@ -42,21 +53,39 @@ export KIE_AI_TIMEOUT="60000"                      # Default: 60 seconds
 export KIE_AI_DB_PATH="./tasks.db"                 # Default: ./tasks.db
 ```
 
-## Usage
+### MCP Configuration
 
-### Starting the Server
+Add to your Claude Desktop or MCP client configuration:
 
-```bash
-# Production
-npm start
-
-# Development
-npm run dev
+```json
+{
+  "kie-ai-mcp-server": {
+    "command": "node",
+    "args": ["/path/to/kie-ai-mcp-server/dist/index.js"],
+    "env": {
+      "KIE_AI_API_KEY": "your-api-key-here"
+    }
+  }
+}
 ```
 
-### Available Tools
+Or if installed globally:
 
-#### 1. `generate_nano_banana`
+```json
+{
+  "kie-ai-mcp-server": {
+    "command": "npx",
+    "args": ["-y", "@andrewlwn77/kie-ai-mcp-server"],
+    "env": {
+      "KIE_AI_API_KEY": "your-api-key-here"
+    }
+  }
+}
+```
+
+## Available Tools
+
+### 1. `generate_nano_banana`
 Generate images using Nano Banana.
 
 **Parameters:**
@@ -69,7 +98,7 @@ Generate images using Nano Banana.
 }
 ```
 
-#### 2. `edit_nano_banana`
+### 2. `edit_nano_banana`
 Edit images using natural language prompts.
 
 **Parameters:**
@@ -79,12 +108,12 @@ Edit images using natural language prompts.
 **Example:**
 ```json
 {
-  "prompt": "turn this photo into a character figure",
+  "prompt": "Add a rainbow arching over the mountains",
   "image_urls": ["https://example.com/image.jpg"]
 }
 ```
 
-#### 3. `generate_veo3_video`
+### 3. `generate_veo3_video`
 Generate videos using Veo3.
 
 **Parameters:**
@@ -106,28 +135,39 @@ Generate videos using Veo3.
 }
 ```
 
-#### 4. `get_task_status`
+### 4. `get_task_status`
 Check the status of a generation task.
 
 **Parameters:**
 - `task_id` (string, required): Task ID to check
 
-#### 5. `list_tasks`
-List recent tasks.
+### 5. `list_tasks`
+List recent tasks with their status.
 
 **Parameters:**
 - `limit` (integer, optional): Max tasks to return (default: 20, max: 100)
 - `status` (string, optional): Filter by status ("pending", "processing", "completed", "failed")
 
+### 6. `get_veo3_1080p_video`
+Get 1080P high-definition version of a Veo3 video.
+
+**Parameters:**
+- `task_id` (string, required): Veo3 task ID to get 1080p video for
+- `index` (integer, optional): Video index (for multiple video results)
+
+**Note**: Not available for videos generated with fallback mode.
+
 ## API Endpoints
 
 The server interfaces with these Kie.ai API endpoints:
 
-- **Veo3 Video**: `POST /veo/generate` ✅ **VALIDATED**
-- **Nano Banana**: `POST /nano-banana/generate` ⚠️ **NEEDS VERIFICATION**
-- **Nano Banana Edit**: `POST /nano-banana-edit/generate` ⚠️ **NEEDS VERIFICATION**
+- **Veo3 Video Generation**: `POST /api/v1/veo/generate` ✅ **VALIDATED**
+- **Veo3 Video Status**: `GET /api/v1/veo/record-info` ✅ **VALIDATED**  
+- **Veo3 1080p Upgrade**: `GET /api/v1/veo/get-1080p-video` ✅ **VALIDATED**
+- **Nano Banana Generation**: `POST /api/v1/playground/createTask` ✅ **VALIDATED**
+- **Nano Banana Status**: `GET /api/v1/playground/recordInfo` ✅ **VALIDATED**
 
-> **Note**: Nano Banana endpoint paths are inferred from UI interfaces and require verification with Kie.ai support.
+All endpoints have been tested and validated with live API responses.
 
 ## Database Schema
 
@@ -137,7 +177,7 @@ The server uses SQLite to track tasks:
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   task_id TEXT UNIQUE NOT NULL,
-  api_type TEXT NOT NULL,
+  api_type TEXT NOT NULL,  -- 'nano-banana', 'nano-banana-edit', 'veo3'
   status TEXT DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -146,18 +186,51 @@ CREATE TABLE tasks (
 );
 ```
 
+## Usage Examples
+
+### Basic Image Generation
+```bash
+# Generate an image
+curl -X POST http://localhost:3000/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "generate_nano_banana",
+    "arguments": {
+      "prompt": "A cat wearing a space helmet"
+    }
+  }'
+```
+
+### Video Generation with Options
+```bash
+# Generate a video
+curl -X POST http://localhost:3000/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "generate_veo3_video",
+    "arguments": {
+      "prompt": "A peaceful garden with blooming flowers",
+      "aspectRatio": "16:9",
+      "model": "veo3_fast"
+    }
+  }'
+```
+
 ## Error Handling
 
 The server handles these HTTP error codes from Kie.ai:
 
+- **200**: Success
+- **400**: Content policy violation / English prompts only
 - **401**: Unauthorized (invalid API key)
 - **402**: Insufficient credits
-- **422**: Validation error or content policy violation
+- **404**: Resource not found
+- **422**: Validation error / record is null
 - **429**: Rate limited
+- **451**: Image access limits
 - **455**: Service maintenance
-- **500**: Server error
+- **500**: Server error / timeout
 - **501**: Generation failed
-- **505**: Feature disabled
 
 ## Development
 
@@ -170,6 +243,9 @@ npm run dev
 
 # Type checking
 npx tsc --noEmit
+
+# Build for production
+npm run build
 ```
 
 ## Pricing
@@ -181,20 +257,57 @@ Based on Kie.ai documentation:
 
 See https://kie.ai/billing for detailed pricing.
 
-## Limitations
+## Production Tips
 
-1. **Nano Banana Endpoints**: Require verification with Kie.ai support
-2. **Task Status Polling**: API endpoint for status checking needs discovery
-3. **Fallback Videos**: Cannot access 1080P endpoint for fallback-generated content
-4. **Image Limits**: Max 5 images for editing, max 1 for video generation
+1. **Database Location**: Set `KIE_AI_DB_PATH` to a persistent location
+2. **API Key Security**: Never commit API keys to version control
+3. **Rate Limiting**: Implement client-side rate limiting for high-volume usage
+4. **Monitoring**: Monitor task status and handle failed generations appropriately
+5. **Storage**: Consider automatic cleanup of old task records
+
+## Troubleshooting
+
+### Common Issues
+
+**"Unauthorized" errors**
+- Verify `KIE_AI_API_KEY` is set correctly
+- Check API key is valid at https://kie.ai/api-key
+
+**"Task not found" errors**
+- Tasks may expire after 14 days
+- Check task ID format matches expected pattern
+
+**Generation failures**
+- Check content policy compliance
+- Verify prompt is in English
+- Ensure sufficient API credits
 
 ## Support
 
 For issues related to:
-- **MCP Server**: Check logs and validate environment variables
+- **MCP Server**: Open an issue at https://github.com/andrewlwn77/kie-ai-mcp-server/issues
 - **Kie.ai API**: Contact support@kie.ai or check https://docs.kie.ai/
 - **API Keys**: Visit https://kie.ai/api-key
 
 ## License
 
 MIT License - see LICENSE file for details.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## Changelog
+
+### v1.0.0
+- Initial release
+- Nano Banana image generation and editing
+- Veo3 video generation
+- 1080p video upgrade support
+- SQLite task tracking
+- Smart endpoint routing
+- Comprehensive error handling
