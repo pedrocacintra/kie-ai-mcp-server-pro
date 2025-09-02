@@ -79,14 +79,23 @@ export class KieAiClient {
     return this.makeRequest<TaskResponse>('/veo/generate', 'POST', request);
   }
 
-  async getTaskStatus(taskId: string): Promise<KieAiResponse<any>> {
-    // Check if it's a Veo3 task (longer task IDs) or playground task (Nano Banana)
-    if (taskId.length > 20) {
-      // Veo3 task - use veo endpoint
+  async getTaskStatus(taskId: string, apiType?: string): Promise<KieAiResponse<any>> {
+    // Use api_type to determine correct endpoint, with fallback strategy
+    if (apiType === 'veo3') {
       return this.makeRequest<any>(`/veo/record-info?taskId=${taskId}`, 'GET');
-    } else {
-      // Playground task - use playground endpoint  
+    } else if (apiType === 'nano-banana' || apiType === 'nano-banana-edit') {
       return this.makeRequest<any>(`/playground/recordInfo?taskId=${taskId}`, 'GET');
+    }
+    
+    // Fallback: try playground first, then veo (for tasks not in database)
+    try {
+      return await this.makeRequest<any>(`/playground/recordInfo?taskId=${taskId}`, 'GET');
+    } catch (error) {
+      try {
+        return await this.makeRequest<any>(`/veo/record-info?taskId=${taskId}`, 'GET');
+      } catch (veoError) {
+        throw error;
+      }
     }
   }
 

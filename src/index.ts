@@ -375,14 +375,12 @@ class KieAiMcpServer {
     try {
       const localTask = await this.db.getTask(task_id);
       
-      // Try to get updated status from API if task exists
+      // Always try to get updated status from API, passing api_type if available
       let apiResponse = null;
-      if (localTask) {
-        try {
-          apiResponse = await this.client.getTaskStatus(task_id);
-        } catch (error) {
-          // API call failed, use local data
-        }
+      try {
+        apiResponse = await this.client.getTaskStatus(task_id, localTask?.api_type);
+      } catch (error) {
+        // API call failed, use local data if available
       }
       
       return {
