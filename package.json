@@ -1,8 +1,14 @@
 {
-  "name": "@andrewlwn77/kie-ai-mcp-server",
-  "version": "1.0.2",
-  "description": "MCP server for Kie.ai APIs (Nano Banana image generation/editing and Veo3 video generation)",
+  "name": "kie-ai-mcp-server-pro",
+  "version": "1.1.0",
+  "description": "Model Context Protocol server for the expanded Kie.ai image and video generation APIs",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "bin": {
     "kie-ai-mcp-server": "dist/index.js"
   },
@@ -16,23 +22,27 @@
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "kie.ai",
     "ai",
     "image-generation",
     "video-generation",
     "nano-banana",
-    "veo3",
-    "model-context-protocol"
+    "gpt-4o",
+    "flux-kontext",
+    "midjourney",
+    "runway",
+    "luma"
   ],
-  "author": "andrewlwn77",
+  "author": "pedrocintra",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andrewlwn77/kie-ai-mcp-server.git"
+    "url": "git+https://github.com/pedrocacintra/kie-ai-mcp-server-pro.git"
   },
-  "homepage": "https://github.com/andrewlwn77/kie-ai-mcp-server#readme",
+  "homepage": "https://github.com/pedrocacintra/kie-ai-mcp-server-pro#readme",
   "bugs": {
-    "url": "https://github.com/andrewlwn77/kie-ai-mcp-server/issues"
+    "url": "https://github.com/pedrocacintra/kie-ai-mcp-server-pro/issues"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.4.0",

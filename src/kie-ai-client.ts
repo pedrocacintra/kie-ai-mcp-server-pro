@@ -1,11 +1,17 @@
-import { 
-  KieAiConfig, 
-  KieAiResponse, 
-  NanoBananaGenerateRequest, 
+import {
+  KieAiConfig,
+  KieAiResponse,
+  NanoBananaGenerateRequest,
   NanaBananaEditRequest,
   Veo3GenerateRequest,
+  Gpt4oImageRequest,
+  FluxKontextGenerateRequest,
+  FluxKontextEditRequest,
+  MidjourneyImageRequest,
+  RunwayAlephVideoRequest,
+  LumaVideoRequest,
   ImageResponse,
-  TaskResponse 
+  TaskResponse
 } from './types.js';
 
 export class KieAiClient {
@@ -58,7 +64,9 @@ export class KieAiClient {
     const playgroundRequest = {
       model: 'google/nano-banana',
       input: {
-        prompt: request.prompt
+        prompt: request.prompt,
+        ...(request.image_size ? { image_size: request.image_size } : {}),
+        ...(request.output_format ? { output_format: request.output_format } : {})
       }
     };
     return this.makeRequest<ImageResponse>('/playground/createTask', 'POST', playgroundRequest);
@@ -69,7 +77,9 @@ export class KieAiClient {
       model: 'google/nano-banana-edit',
       input: {
         prompt: request.prompt,
-        image_urls: request.image_urls
+        image_urls: request.image_urls,
+        ...(request.image_size ? { image_size: request.image_size } : {}),
+        ...(request.output_format ? { output_format: request.output_format } : {})
       }
     };
     return this.makeRequest<ImageResponse>('/playground/createTask', 'POST', playgroundRequest);
@@ -77,6 +87,30 @@ export class KieAiClient {
 
   async generateVeo3Video(request: Veo3GenerateRequest): Promise<KieAiResponse<TaskResponse>> {
     return this.makeRequest<TaskResponse>('/veo/generate', 'POST', request);
+  }
+
+  async generateGpt4oImage(request: Gpt4oImageRequest): Promise<KieAiResponse<ImageResponse>> {
+    return this.makeRequest<ImageResponse>('/gpt4o-image/generate', 'POST', request);
+  }
+
+  async generateFluxKontext(request: FluxKontextGenerateRequest): Promise<KieAiResponse<ImageResponse>> {
+    return this.makeRequest<ImageResponse>('/flux/kontext/generate', 'POST', request);
+  }
+
+  async editFluxKontext(request: FluxKontextEditRequest): Promise<KieAiResponse<ImageResponse>> {
+    return this.makeRequest<ImageResponse>('/flux/kontext/edit', 'POST', request);
+  }
+
+  async generateMidjourney(request: MidjourneyImageRequest): Promise<KieAiResponse<ImageResponse>> {
+    return this.makeRequest<ImageResponse>('/midjourney/generate', 'POST', request);
+  }
+
+  async generateRunwayAlephVideo(request: RunwayAlephVideoRequest): Promise<KieAiResponse<TaskResponse>> {
+    return this.makeRequest<TaskResponse>('/runway/aleph/generate', 'POST', request);
+  }
+
+  async generateLumaVideo(request: LumaVideoRequest): Promise<KieAiResponse<TaskResponse>> {
+    return this.makeRequest<TaskResponse>('/luma/generate', 'POST', request);
   }
 
   async getTaskStatus(taskId: string, apiType?: string): Promise<KieAiResponse<any>> {
