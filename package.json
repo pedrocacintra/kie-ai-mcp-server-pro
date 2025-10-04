@@ -10,7 +10,7 @@
     "LICENSE"
   ],
   "bin": {
-    "kie-ai-mcp-server": "dist/index.js"
+    "kie-ai-mcp-server-pro": "dist/index.js"
   },
   "type": "module",
   "scripts": {
