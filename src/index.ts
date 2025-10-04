@@ -11,11 +11,20 @@ import {
 
 import { KieAiClient } from './kie-ai-client.js';
 import { TaskDatabase } from './database.js';
-import { 
+import {
   NanoBananaGenerateSchema,
-  NanoBananaEditSchema, 
+  NanoBananaEditSchema,
   Veo3GenerateSchema,
-  KieAiConfig 
+  Gpt4oImageSchema,
+  FluxKontextGenerateSchema,
+  FluxKontextEditSchema,
+  MidjourneyImageSchema,
+  RunwayAlephVideoSchema,
+  LumaVideoSchema,
+  ImageSizeEnum,
+  OutputFormatEnum,
+  FluxKontextModelEnum,
+  KieAiConfig
 } from './types.js';
 
 class KieAiMcpServer {
@@ -61,6 +70,16 @@ class KieAiMcpServer {
                   description: 'Text prompt for image generation',
                   minLength: 1,
                   maxLength: 1000
+                },
+                image_size: {
+                  type: 'string',
+                  description: 'Desired aspect ratio for the output image',
+                  enum: ImageSizeEnum.options
+                },
+                output_format: {
+                  type: 'string',
+                  description: 'Output image format',
+                  enum: OutputFormatEnum.options
                 }
               },
               required: ['prompt']
@@ -84,9 +103,183 @@ class KieAiMcpServer {
                   items: { type: 'string', format: 'uri' },
                   minItems: 1,
                   maxItems: 5
+                },
+                image_size: {
+                  type: 'string',
+                  description: 'Desired aspect ratio for the edited image',
+                  enum: ImageSizeEnum.options
+                },
+                output_format: {
+                  type: 'string',
+                  description: 'Output image format',
+                  enum: OutputFormatEnum.options
                 }
               },
               required: ['prompt', 'image_urls']
+            }
+          },
+          {
+            name: 'generate_gpt4o_image',
+            description: 'Generate images using the GPT-4o image generation API',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                prompt: {
+                  type: 'string',
+                  description: 'Text prompt for GPT-4o image generation',
+                  minLength: 1,
+                  maxLength: 2000
+                },
+                image_urls: {
+                  type: 'array',
+                  description: 'Optional reference images (max 5)',
+                  items: { type: 'string', format: 'uri' },
+                  minItems: 1,
+                  maxItems: 5
+                },
+                size: {
+                  type: 'string',
+                  description: 'Image aspect ratio/size',
+                  enum: ImageSizeEnum.options
+                },
+                output_format: {
+                  type: 'string',
+                  description: 'Output image format',
+                  enum: OutputFormatEnum.options
+                },
+                callBackUrl: {
+                  type: 'string',
+                  description: 'Webhook URL to receive the generated image',
+                  format: 'uri'
+                }
+              },
+              required: ['prompt']
+            }
+          },
+          {
+            name: 'generate_flux_image',
+            description: 'Generate images using Flux Kontext models',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                prompt: {
+                  type: 'string',
+                  description: 'Prompt describing the desired Flux Kontext image',
+                  minLength: 1,
+                  maxLength: 2000
+                },
+                image_urls: {
+                  type: 'array',
+                  description: 'Optional reference or init images (max 5)',
+                  items: { type: 'string', format: 'uri' },
+                  minItems: 1,
+                  maxItems: 5
+                },
+                aspectRatio: {
+                  type: 'string',
+                  description: 'Image aspect ratio',
+                  enum: ImageSizeEnum.options
+                },
+                model: {
+                  type: 'string',
+                  description: 'Flux Kontext model variant',
+                  enum: FluxKontextModelEnum.options,
+                  default: 'flux-kontext-pro'
+                },
+                output_format: {
+                  type: 'string',
+                  description: 'Output image format',
+                  enum: OutputFormatEnum.options
+                },
+                callBackUrl: {
+                  type: 'string',
+                  description: 'Webhook URL for task completion notifications',
+                  format: 'uri'
+                }
+              },
+              required: ['prompt']
+            }
+          },
+          {
+            name: 'edit_flux_image',
+            description: 'Edit images using Flux Kontext models',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                prompt: {
+                  type: 'string',
+                  description: 'Instructions for editing the image',
+                  minLength: 1,
+                  maxLength: 2000
+                },
+                image_urls: {
+                  type: 'array',
+                  description: 'Source images to edit (1-5)',
+                  items: { type: 'string', format: 'uri' },
+                  minItems: 1,
+                  maxItems: 5
+                },
+                aspectRatio: {
+                  type: 'string',
+                  description: 'Image aspect ratio',
+                  enum: ImageSizeEnum.options
+                },
+                model: {
+                  type: 'string',
+                  description: 'Flux Kontext model variant',
+                  enum: FluxKontextModelEnum.options,
+                  default: 'flux-kontext-pro'
+                },
+                output_format: {
+                  type: 'string',
+                  description: 'Output image format',
+                  enum: OutputFormatEnum.options
+                },
+                callBackUrl: {
+                  type: 'string',
+                  description: 'Webhook URL for task completion notifications',
+                  format: 'uri'
+                }
+              },
+              required: ['prompt', 'image_urls']
+            }
+          },
+          {
+            name: 'generate_midjourney_image',
+            description: 'Generate images using the Midjourney API',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                prompt: {
+                  type: 'string',
+                  description: 'Prompt describing the desired Midjourney image',
+                  minLength: 1,
+                  maxLength: 2000
+                },
+                image_urls: {
+                  type: 'array',
+                  description: 'Optional reference images (max 4)',
+                  items: { type: 'string', format: 'uri' },
+                  minItems: 1,
+                  maxItems: 4
+                },
+                aspectRatio: {
+                  type: 'string',
+                  description: 'Image aspect ratio',
+                  enum: ImageSizeEnum.options
+                },
+                output_format: {
+                  type: 'string',
+                  description: 'Output image format',
+                  enum: OutputFormatEnum.options
+                },
+                callBackUrl: {
+                  type: 'string',
+                  description: 'Webhook URL to receive finished images',
+                  format: 'uri'
+                }
+              },
+              required: ['prompt']
             }
           },
           {
@@ -134,6 +327,77 @@ class KieAiMcpServer {
                   type: 'boolean',
                   description: 'Enable fallback mechanism for content policy failures',
                   default: false
+                }
+              },
+              required: ['prompt']
+            }
+          },
+          {
+            name: 'generate_runway_aleph_video',
+            description: 'Generate cinematic videos using Runway Aleph via Kie.ai',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                prompt: {
+                  type: 'string',
+                  description: 'Text description for the Aleph video generation',
+                  minLength: 1,
+                  maxLength: 2000
+                },
+                imageUrls: {
+                  type: 'array',
+                  description: 'Optional reference images (max 4)',
+                  items: { type: 'string', format: 'uri' },
+                  maxItems: 4
+                },
+                duration: {
+                  type: 'integer',
+                  description: 'Desired duration of the generated video in seconds',
+                  minimum: 1,
+                  maximum: 120
+                },
+                aspectRatio: {
+                  type: 'string',
+                  description: 'Aspect ratio for the generated video',
+                  enum: ImageSizeEnum.options
+                },
+                callBackUrl: {
+                  type: 'string',
+                  description: 'Webhook URL for task completion notifications',
+                  format: 'uri'
+                }
+              },
+              required: ['prompt']
+            }
+          },
+          {
+            name: 'generate_luma_video',
+            description: 'Generate high-quality videos using Luma via Kie.ai',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                prompt: {
+                  type: 'string',
+                  description: 'Prompt describing the desired Luma video',
+                  minLength: 1,
+                  maxLength: 2000
+                },
+                imageUrls: {
+                  type: 'array',
+                  description: 'Optional reference images (max 4)',
+                  items: { type: 'string', format: 'uri' },
+                  maxItems: 4
+                },
+                duration: {
+                  type: 'integer',
+                  description: 'Desired duration of the generated video in seconds',
+                  minimum: 1,
+                  maximum: 120
+                },
+                callBackUrl: {
+                  type: 'string',
+                  description: 'Webhook URL for task completion notifications',
+                  format: 'uri'
                 }
               },
               required: ['prompt']
@@ -203,16 +467,34 @@ class KieAiMcpServer {
         switch (name) {
           case 'generate_nano_banana':
             return await this.handleGenerateNanoBanana(args);
-          
+
           case 'edit_nano_banana':
             return await this.handleEditNanoBanana(args);
-          
+
+          case 'generate_gpt4o_image':
+            return await this.handleGenerateGpt4oImage(args);
+
+          case 'generate_flux_image':
+            return await this.handleGenerateFluxKontext(args);
+
+          case 'edit_flux_image':
+            return await this.handleEditFluxKontext(args);
+
+          case 'generate_midjourney_image':
+            return await this.handleGenerateMidjourney(args);
+
           case 'generate_veo3_video':
             return await this.handleGenerateVeo3Video(args);
-          
+
+          case 'generate_runway_aleph_video':
+            return await this.handleGenerateRunwayAleph(args);
+
+          case 'generate_luma_video':
+            return await this.handleGenerateLuma(args);
+
           case 'get_task_status':
             return await this.handleGetTaskStatus(args);
-          
+
           case 'list_tasks':
             return await this.handleListTasks(args);
           
@@ -281,7 +563,7 @@ class KieAiMcpServer {
 
   private async handleEditNanoBanana(args: any) {
     const request = NanoBananaEditSchema.parse(args);
-    
+
     try {
       const response = await this.client.editNanoBanana(request);
       
@@ -322,9 +604,181 @@ class KieAiMcpServer {
     }
   }
 
+  private async handleGenerateGpt4oImage(args: any) {
+    const request = Gpt4oImageSchema.parse(args);
+
+    try {
+      const response = await this.client.generateGpt4oImage(request);
+
+      if (response.data?.taskId) {
+        await this.db.createTask({
+          task_id: response.data.taskId,
+          api_type: 'gpt4o-image',
+          status: 'pending',
+          result_url: response.data.imageUrl
+        });
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              response,
+              message: 'GPT-4o image generation initiated'
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Generation failed';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: message
+            }, null, 2)
+          }
+        ]
+      };
+    }
+  }
+
+  private async handleGenerateFluxKontext(args: any) {
+    const request = FluxKontextGenerateSchema.parse(args);
+
+    try {
+      const response = await this.client.generateFluxKontext(request);
+
+      if (response.data?.taskId) {
+        await this.db.createTask({
+          task_id: response.data.taskId,
+          api_type: 'flux-kontext-generate',
+          status: 'pending',
+          result_url: response.data.imageUrl
+        });
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              response,
+              message: 'Flux Kontext image generation initiated'
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Generation failed';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: message
+            }, null, 2)
+          }
+        ]
+      };
+    }
+  }
+
+  private async handleEditFluxKontext(args: any) {
+    const request = FluxKontextEditSchema.parse(args);
+
+    try {
+      const response = await this.client.editFluxKontext(request);
+
+      if (response.data?.taskId) {
+        await this.db.createTask({
+          task_id: response.data.taskId,
+          api_type: 'flux-kontext-edit',
+          status: 'pending',
+          result_url: response.data.imageUrl
+        });
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              response,
+              message: 'Flux Kontext image editing initiated'
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Editing failed';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: message
+            }, null, 2)
+          }
+        ]
+      };
+    }
+  }
+
+  private async handleGenerateMidjourney(args: any) {
+    const request = MidjourneyImageSchema.parse(args);
+
+    try {
+      const response = await this.client.generateMidjourney(request);
+
+      if (response.data?.taskId) {
+        await this.db.createTask({
+          task_id: response.data.taskId,
+          api_type: 'midjourney-image',
+          status: 'pending',
+          result_url: response.data.imageUrl
+        });
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              response,
+              message: 'Midjourney image generation initiated'
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Generation failed';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: message
+            }, null, 2)
+          }
+        ]
+      };
+    }
+  }
+
   private async handleGenerateVeo3Video(args: any) {
     const request = Veo3GenerateSchema.parse(args);
-    
+
     try {
       const response = await this.client.generateVeo3Video(request);
       
@@ -344,6 +798,92 @@ class KieAiMcpServer {
               success: true,
               task_id: response.data?.taskId,
               message: 'Veo3 video generation task created successfully',
+              note: 'Use get_task_status to check progress'
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Video generation failed';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: message
+            }, null, 2)
+          }
+        ]
+      };
+    }
+  }
+
+  private async handleGenerateRunwayAleph(args: any) {
+    const request = RunwayAlephVideoSchema.parse(args);
+
+    try {
+      const response = await this.client.generateRunwayAlephVideo(request);
+
+      if (response.data?.taskId) {
+        await this.db.createTask({
+          task_id: response.data.taskId,
+          api_type: 'runway-aleph-video',
+          status: 'pending'
+        });
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              task_id: response.data?.taskId,
+              message: 'Runway Aleph video generation task created successfully',
+              note: 'Use get_task_status to check progress'
+            }, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Video generation failed';
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: message
+            }, null, 2)
+          }
+        ]
+      };
+    }
+  }
+
+  private async handleGenerateLuma(args: any) {
+    const request = LumaVideoSchema.parse(args);
+
+    try {
+      const response = await this.client.generateLumaVideo(request);
+
+      if (response.data?.taskId) {
+        await this.db.createTask({
+          task_id: response.data.taskId,
+          api_type: 'luma-video',
+          status: 'pending'
+        });
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              task_id: response.data?.taskId,
+              message: 'Luma video generation task created successfully',
               note: 'Use get_task_status to check progress'
             }, null, 2)
           }
