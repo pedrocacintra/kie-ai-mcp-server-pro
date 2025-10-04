@@ -23,18 +23,18 @@ An MCP (Model Context Protocol) server that provides access to Kie.ai's AI APIs 
 
 ## Installation
 
-### From NPM
+### From npm
 
 ```bash
-npm install -g @andrewlwn77/kie-ai-mcp-server
+npm install -g kie-ai-mcp-server-pro
 ```
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/andrewlwn77/kie-ai-mcp-server.git
-cd kie-ai-mcp-server
+git clone https://github.com/pedrocacintra/kie-ai-mcp-server-pro.git
+cd kie-ai-mcp-server-pro
 
 # Install dependencies
 npm install
@@ -42,6 +42,14 @@ npm install
 # Build the project
 npm run build
 ```
+
+## Publishing
+
+1. Confirm you are authenticated with the `pedrocintra` npm account using `npm whoami` (or run `npm login` if needed).
+2. Ensure the version in `package.json` is correct for your release.
+3. Run `npm run build` to generate the compiled JavaScript and type declarations in `dist/`.
+4. Verify the package contents with `npm pack` if desired.
+5. Publish to npm with `npm publish --access public`.
 
 ## Configuration
 
@@ -65,7 +73,7 @@ Add to your Claude Desktop or MCP client configuration:
 {
   "kie-ai-mcp-server": {
     "command": "node",
-    "args": ["/path/to/kie-ai-mcp-server/dist/index.js"],
+    "args": ["/path/to/kie-ai-mcp-server-pro/dist/index.js"],
     "env": {
       "KIE_AI_API_KEY": "your-api-key-here"
     }
@@ -76,15 +84,15 @@ Add to your Claude Desktop or MCP client configuration:
 Or if installed globally:
 
 ```json
-{
-  "kie-ai-mcp-server": {
-    "command": "npx",
-    "args": ["-y", "@andrewlwn77/kie-ai-mcp-server"],
-    "env": {
-      "KIE_AI_API_KEY": "your-api-key-here"
+  {
+    "kie-ai-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "kie-ai-mcp-server-pro"],
+      "env": {
+        "KIE_AI_API_KEY": "your-api-key-here"
+      }
     }
   }
-}
 ```
 
 ## Available Tools
@@ -320,7 +328,7 @@ See https://kie.ai/billing for detailed pricing.
 ## Support
 
 For issues related to:
-- **MCP Server**: Open an issue at https://github.com/andrewlwn77/kie-ai-mcp-server/issues
+- **MCP Server**: Open an issue at https://github.com/pedrocacintra/kie-ai-mcp-server-pro/issues
 - **Kie.ai API**: Contact support@kie.ai or check https://docs.kie.ai/
 - **API Keys**: Visit https://kie.ai/api-key
 
