@@ -45,7 +45,7 @@ npm run build
 
 ## Publishing
 
-1. Confirm you are authenticated with the `pedrocintra` npm account using `npm whoami` (or run `npm login` if needed).
+1. Confirm you are authenticated with your npm account using `npm whoami` (or run `npm login` if needed).
 2. Ensure the version in `package.json` is correct for your release.
 3. Run `npm run build` to generate the compiled JavaScript and type declarations in `dist/`.
 4. Verify the package contents with `npm pack` if desired.
