@@ -1,28 +1,46 @@
-# Understanding Git Conflict Markers
+# Understanding Git Conflict Markers (Plain-English Guide)
 
-When Git tells you there is a conflict, it inserts special markers into the affected files so you can decide what the final content should be. These markers look like this:
+When GitHub says “This branch has conflicts,” it means the same part of a file was changed in two different places. Git places **conflict markers** inside the file so you can choose what should stay.
+
+Those markers always look the same:
 
 ```
 <<<<<<< HEAD
-content from the branch you are on
+⚠️ This is the version that is currently on **your** branch.
 =======
-content from the branch you are merging in
+⚠️ This is the version coming from the branch you are trying to merge (often `main`).
 >>>>>>> other-branch-name
 ```
 
-Here is what each part means:
+Think of them as a sandwich:
 
-- `<<<<<<< HEAD` — everything between this line and the `=======` line is what currently exists on **your** branch (the version you had checked out when the conflict happened).
-- `=======` — this line separates the two competing versions of the same section of the file.
-- `>>>>>>> other-branch-name` — everything between the `=======` line and this line is what Git found on the **other** branch (the one you are trying to merge or pull).
+* The top bread (`<<<<<<< HEAD`) starts the slice that belongs to you.
+* The middle divider (`=======`) separates the two versions.
+* The bottom bread (`>>>>>>> other-branch-name`) ends the slice that came from the other branch.
 
-## How to resolve the conflict
+## Step-by-step: fixing it directly on GitHub
 
-1. Read both versions and decide what the file should look like when you are done. You can keep one side, combine pieces from both, or rewrite the section entirely.
-2. Delete the conflict marker lines themselves (`<<<<<<<`, `=======`, and `>>>>>>>`). They are just placeholders to show you the conflict; they must not remain in the final file.
-3. Make sure the remaining text is exactly what you want to keep.
-4. Save the file.
-5. Tell Git that the file is fixed by running `git add <filename>`.
-6. Once every conflicted file is added, create a commit (for example, run `git commit`).
+1. Open the pull request and click **Resolve conflicts**.
+2. GitHub shows each affected file in an editor. Inside the file, look for the markers shown above.
+3. Decide what the final text should be:
+   * Keep only the top section if your copy is correct.
+   * Keep only the bottom section if the incoming copy is correct.
+   * Or mix the two by copying the bits you want from each side.
+4. **Delete the marker lines themselves** (`<<<<<<<`, `=======`, `>>>>>>>`). They are just signposts—your final file should not contain them.
+5. Double-check the remaining text. It should read exactly how you want the finished file to look.
+6. Scroll to the bottom of the page and click **Mark as resolved**.
+7. Repeat steps 2–6 for every file that shows a conflict.
+8. When every file is marked resolved, click **Commit merge**. GitHub will create a commit that saves your decisions.
 
-After that, you can push the branch or continue with your merge, and GitHub will see that the conflicts have been resolved.
+After that commit appears on the pull request, the red warning banner should disappear and the **Merge** button will become available.
+
+## Optional: fixing the same thing on your computer
+
+If you prefer to edit locally (or the web editor feels cramped), follow the same idea:
+
+1. Open the file in your editor.
+2. Remove the parts you do not want and delete the marker lines.
+3. Save, run `git add <filename>` for each file, then `git commit` once everything is fixed.
+4. Push the branch (`git push`). GitHub will see the conflicts are resolved.
+
+The key is simple: **decide which version of the text you want, erase the markers, and save only the good content.** Once that’s done, Git considers the conflict solved.
