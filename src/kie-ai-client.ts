@@ -19,6 +19,8 @@ import {
   KlingVideoRequest,
   PikaVideoRequest,
   HaiperVideoRequest,
+  RunwayAlephVideoRequest,
+  LumaVideoRequest,
   ImageResponse,
   TaskResponse
 } from './types.js';
