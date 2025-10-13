@@ -1,5 +1,6 @@
 {
   "name": "kie-ai-mcp-server-pro",
+  "version": "1.2.0",
   "version": "1.1.1",
   "description": "Model Context Protocol server for the expanded Kie.ai image and video generation APIs",
   "main": "dist/index.js",
@@ -30,6 +31,7 @@
     "nano-banana",
     "gpt-4o",
     "flux-kontext",
+    "sora2"
     "midjourney",
     "runway",
     "luma"
