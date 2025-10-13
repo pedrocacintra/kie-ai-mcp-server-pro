@@ -263,6 +263,8 @@ export type RunwayGen3VideoRequest = z.infer<typeof RunwayGen3VideoSchema>;
 export type KlingVideoRequest = z.infer<typeof KlingVideoSchema>;
 export type PikaVideoRequest = z.infer<typeof PikaVideoSchema>;
 export type HaiperVideoRequest = z.infer<typeof HaiperVideoSchema>;
+export type RunwayAlephVideoRequest = z.infer<typeof RunwayAlephVideoSchema>;
+export type LumaVideoRequest = z.infer<typeof LumaVideoSchema>;
 
 export interface KieAiResponse<T = any> {
   code: number;
@@ -301,6 +303,8 @@ export interface TaskRecord {
     | 'kling-video'
     | 'pika-video'
     | 'haiper-video';
+    | 'runway-aleph-video'
+    | 'luma-video';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   created_at: string;
   updated_at: string;
