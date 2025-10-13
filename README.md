@@ -1,12 +1,15 @@
 # Kie.ai MCP Server
 
-An MCP (Model Context Protocol) server that provides access to Kie.ai's AI APIs including Nano Banana image generation/editing and Veo3 video generation.
+An MCP (Model Context Protocol) server that provides access to Kie.ai's AI APIs including Nano Banana image generation/editing, GPT-4o and Flux Kontext image synthesis, Midjourney rendering, Veo3 video generation, and additional Runway and Luma video models.
 
 ## Features
 
-- **Nano Banana Image Generation**: Text-to-image generation using Google's Gemini 2.5 Flash Image Preview
-- **Nano Banana Image Editing**: Natural language image editing with up to 5 input images
-- **Veo3 Video Generation**: Professional-quality video generation with text-to-video and image-to-video capabilities
+- **Nano Banana Image Generation**: Text-to-image generation using Google's Gemini 2.5 Flash Image Preview with aspect ratio and format control
+- **Nano Banana Image Editing**: Natural language image editing with up to 5 input images, configurable aspect ratios, and output formats
+- **GPT-4o, DALL·E 3 & Ideogram Rendering**: Access OpenAI GPT-4o, DALL·E 3, and Ideogram 3 with webhook support and style controls
+- **Flux Kontext, Midjourney, Stable Diffusion 3 & Playground**: Trigger leading community image models with aspect, scheduler, and guidance options
+- **Veo3 & Sora 2 Video Generation**: Professional-quality Google Veo3 and OpenAI Sora 2 generation with watermark removal by default
+- **Runway Aleph, Gen-3, Kling, Pika & Haiper Videos**: Request cinematic videos from Runway, Kling, Pika Labs, and Haiper directly through Kie.ai
 - **1080p Video Upgrade**: Get high-definition versions of Veo3 videos
 - **Task Management**: SQLite-based task tracking with status polling
 - **Smart Endpoint Routing**: Automatic detection of task types for status checking
@@ -19,18 +22,18 @@ An MCP (Model Context Protocol) server that provides access to Kie.ai's AI APIs 
 
 ## Installation
 
-### From NPM
+### From npm
 
 ```bash
-npm install -g @andrewlwn77/kie-ai-mcp-server
+npm install -g kie-ai-mcp-server-pro
 ```
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/andrewlwn77/kie-ai-mcp-server.git
-cd kie-ai-mcp-server
+git clone https://github.com/pedrocacintra/kie-ai-mcp-server-pro.git
+cd kie-ai-mcp-server-pro
 
 # Install dependencies
 npm install
@@ -38,6 +41,14 @@ npm install
 # Build the project
 npm run build
 ```
+
+## Publishing
+
+1. Confirm you are authenticated with the `pedrocintra` npm account using `npm whoami` (or run `npm login` if needed).
+2. Ensure the version in `package.json` is correct for your release.
+3. Run `npm run build` to generate the compiled JavaScript and type declarations in `dist/`.
+4. Verify the package contents with `npm pack` if desired.
+5. Publish to npm with `npm publish --access public`.
 
 ## Configuration
 
@@ -61,7 +72,7 @@ Add to your Claude Desktop or MCP client configuration:
 {
   "kie-ai-mcp-server": {
     "command": "node",
-    "args": ["/path/to/kie-ai-mcp-server/dist/index.js"],
+    "args": ["/path/to/kie-ai-mcp-server-pro/dist/index.js"],
     "env": {
       "KIE_AI_API_KEY": "your-api-key-here"
     }
@@ -72,102 +83,256 @@ Add to your Claude Desktop or MCP client configuration:
 Or if installed globally:
 
 ```json
-{
-  "kie-ai-mcp-server": {
-    "command": "npx",
-    "args": ["-y", "@andrewlwn77/kie-ai-mcp-server"],
-    "env": {
-      "KIE_AI_API_KEY": "your-api-key-here"
+  {
+    "kie-ai-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "kie-ai-mcp-server-pro"],
+      "env": {
+        "KIE_AI_API_KEY": "your-api-key-here"
+      }
     }
   }
-}
 ```
 
 ## Available Tools
 
-### 1. `generate_nano_banana`
-Generate images using Nano Banana.
+### `generate_nano_banana`
+Generate images using Nano Banana with fine-grained control.
 
 **Parameters:**
 - `prompt` (string, required): Text description of the image to generate
+- `image_size` (enum, optional): One of `1:1`, `9:16`, `16:9`, `3:4`, `4:3`, `3:2`, `2:3`, `5:4`, `4:5`, `21:9`, `auto`
+- `output_format` (enum, optional): `png` or `jpeg`
 
-**Example:**
-```json
-{
-  "prompt": "A surreal painting of a giant banana floating in space"
-}
-```
-
-### 2. `edit_nano_banana`
+### `edit_nano_banana`
 Edit images using natural language prompts.
 
 **Parameters:**
 - `prompt` (string, required): Description of edits to make
-- `image_urls` (array, required): URLs of images to edit (max 5)
+- `image_urls` (array, required): URLs of images to edit (1-5)
+- `image_size` (enum, optional): See values above
+- `output_format` (enum, optional): `png` or `jpeg`
 
-**Example:**
-```json
-{
-  "prompt": "Add a rainbow arching over the mountains",
-  "image_urls": ["https://example.com/image.jpg"]
-}
-```
+### `generate_gpt4o_image`
+Generate images using OpenAI's GPT-4o image API.
 
-### 3. `generate_veo3_video`
+**Parameters:**
+- `prompt` (string, required)
+- `image_urls` (array of URLs, optional, max 5)
+- `size` (enum, optional): Allowed ratios listed above
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional): Webhook to receive results
+
+### `generate_flux_image`
+Generate images with Flux Kontext models.
+
+**Parameters:**
+- `prompt` (string, required)
+- `image_urls` (array of URLs, optional, max 5)
+- `aspectRatio` (enum, optional): Allowed ratios listed above
+- `model` (enum, optional): `flux-kontext-pro` (default) or `flux-kontext-max`
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional)
+
+### `edit_flux_image`
+Edit images using Flux Kontext models.
+
+**Parameters:**
+- `prompt` (string, required)
+- `image_urls` (array of URLs, required, 1-5)
+- `aspectRatio` (enum, optional)
+- `model` (enum, optional): `flux-kontext-pro` (default) or `flux-kontext-max`
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional)
+
+### `generate_midjourney_image`
+Trigger Midjourney image generation.
+
+**Parameters:**
+- `prompt` (string, required)
+- `image_urls` (array of URLs, optional, max 4)
+- `aspectRatio` (enum, optional)
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional)
+
+### `generate_dalle3_image`
+Generate images using OpenAI's DALL·E 3 models.
+
+**Parameters:**
+- `prompt` (string, required)
+- `image_urls` (array of URLs, optional, max 5)
+- `size` (enum, optional): Allowed ratios listed above
+- `quality` (enum, optional): `standard` or `hd`
+- `style` (enum, optional): `vivid` or `natural`
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional)
+
+### `generate_ideogram_image`
+Generate typographic or illustrative art using Ideogram 3.
+
+**Parameters:**
+- `prompt` (string, required)
+- `negative_prompt` (string, optional)
+- `image_urls` (array of URLs, optional, max 5)
+- `aspectRatio` (enum, optional)
+- `style` (string, optional): short style hint
+- `model` (enum, optional): `ideogram-2`, `ideogram-3`, `ideogram-3-rapid` (default: `ideogram-3`)
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional)
+
+### `generate_stable_diffusion3_image`
+Generate photorealistic renders using Stability AI's Stable Diffusion 3.
+
+**Parameters:**
+- `prompt` (string, required)
+- `negative_prompt` (string, optional)
+- `image_urls` (array of URLs, optional, max 4)
+- `aspectRatio` (enum, optional)
+- `guidance_scale` (number, optional, 0-20)
+- `steps` (integer, optional, 10-150)
+- `scheduler` (enum, optional): `ddim`, `pndm`, `euler`, `euler_a`, `heun`, `dpmpp_2m`
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional)
+
+### `generate_playground_image`
+Generate images using Playground v3.
+
+**Parameters:**
+- `prompt` (string, required)
+- `negative_prompt` (string, optional)
+- `image_urls` (array of URLs, optional, max 4)
+- `aspectRatio` (enum, optional)
+- `guidance_scale` (number, optional, 0-20)
+- `steps` (integer, optional, 10-150)
+- `model` (enum, optional): `playground-v2`, `playground-v2.5`, `playground-v3` (default: `playground-v3`)
+- `output_format` (enum, optional): `png` or `jpeg`
+- `callBackUrl` (URL, optional)
+
+### `generate_veo3_video`
 Generate videos using Veo3.
 
 **Parameters:**
 - `prompt` (string, required): Video description
 - `imageUrls` (array, optional): Image for image-to-video (max 1)
-- `model` (enum, optional): "veo3" or "veo3_fast" (default: "veo3")
-- `aspectRatio` (enum, optional): "16:9" or "9:16" (default: "16:9")
+- `model` (enum, optional): `veo3` or `veo3_fast` (default: `veo3`)
+- `aspectRatio` (enum, optional): `16:9` or `9:16` (default: `16:9`)
 - `seeds` (integer, optional): Random seed 10000-99999
 - `watermark` (string, optional): Watermark text
 - `enableFallback` (boolean, optional): Enable fallback mechanism
 
-**Example:**
-```json
-{
-  "prompt": "A dog playing in a park",
-  "model": "veo3",
-  "aspectRatio": "16:9",
-  "seeds": 12345
-}
-```
-
-### 4. `get_task_status`
-Check the status of a generation task.
+### `generate_runway_aleph_video`
+Generate cinematic videos using Runway Aleph.
 
 **Parameters:**
-- `task_id` (string, required): Task ID to check
+- `prompt` (string, required)
+- `imageUrls` (array of URLs, optional, max 4)
+- `duration` (integer seconds, optional, 1-120)
+- `aspectRatio` (enum, optional)
+- `callBackUrl` (URL, optional)
 
-### 5. `list_tasks`
-List recent tasks with their status.
-
-**Parameters:**
-- `limit` (integer, optional): Max tasks to return (default: 20, max: 100)
-- `status` (string, optional): Filter by status ("pending", "processing", "completed", "failed")
-
-### 6. `get_veo3_1080p_video`
-Get 1080P high-definition version of a Veo3 video.
+### `generate_luma_video`
+Generate premium videos using Luma.
 
 **Parameters:**
-- `task_id` (string, required): Veo3 task ID to get 1080p video for
-- `index` (integer, optional): Video index (for multiple video results)
+- `prompt` (string, required)
+- `imageUrls` (array of URLs, optional, max 4)
+- `duration` (integer seconds, optional, 1-120)
+- `callBackUrl` (URL, optional)
 
-**Note**: Not available for videos generated with fallback mode.
+### `generate_sora2_video`
+Generate cinematic clips with OpenAI Sora 2. Watermark removal is enabled by default.
+
+**Parameters:**
+- `prompt` (string, required)
+- `negative_prompt` (string, optional)
+- `imageUrls` (array of URLs, optional, max 8)
+- `duration` (integer seconds, optional, 1-120)
+- `aspectRatio` (enum, optional)
+- `resolution` (enum, optional): `720p`, `1080p`, `4k`, `8k`, `auto`
+- `frameRate` (enum, optional): 12, 15, 24, 25, 30, 48, 50, 60
+- `style` (enum, optional): `cinematic`, `photorealistic`, `animation`, `stylized`, `documentary`, `surreal`
+- `cameraMotion` (enum, optional): `static`, `handheld`, `dolly`, `crane`, `drone`, `steadicam`
+- `seed` (integer, optional, 0-999999)
+- `guidance_scale` (number, optional, 0-20)
+- `remove_watermark` (boolean, optional, defaults to true)
+- `callBackUrl` (URL, optional)
+
+### `generate_runway_gen3_video`
+Generate videos using Runway Gen-3 variants.
+
+**Parameters:**
+- `prompt` (string, required)
+- `imageUrls` (array of URLs, optional, max 4)
+- `duration` (integer seconds, optional, 1-120)
+- `aspectRatio` (enum, optional)
+- `model` (enum, optional): `runway-gen3`, `runway-gen3-light`, `runway-gen3-alpha`
+- `resolution` (enum, optional): `720p`, `1080p`, `4k`, `8k`, `auto`
+- `frameRate` (enum, optional): 12, 15, 24, 25, 30, 48, 50, 60
+- `callBackUrl` (URL, optional)
+
+### `generate_kling_video`
+Generate cinematic content with Kling.
+
+**Parameters:**
+- `prompt` (string, required)
+- `imageUrls` (array of URLs, optional, max 4)
+- `duration` (integer seconds, optional, 1-120)
+- `aspectRatio` (enum, optional)
+- `mode` (enum, optional): `standard`, `fast`, `turbo`
+- `resolution` (enum, optional): `720p`, `1080p`, `4k`, `8k`, `auto`
+- `frameRate` (enum, optional): 12, 15, 24, 25, 30, 48, 50, 60
+- `callBackUrl` (URL, optional)
+
+### `generate_pika_video`
+Generate stylized animations with Pika Labs.
+
+**Parameters:**
+- `prompt` (string, required)
+- `imageUrls` (array of URLs, optional, max 4)
+- `duration` (integer seconds, optional, 1-30)
+- `aspectRatio` (enum, optional)
+- `mode` (enum, optional): `creative`, `realistic`, `animation`
+- `resolution` (enum, optional): `720p`, `1080p`, `4k`, `8k`, `auto`
+- `frameRate` (enum, optional): 12, 15, 24, 25, 30, 48, 50, 60
+- `callBackUrl` (URL, optional)
+
+### `generate_haiper_video`
+Generate conceptual visuals using Haiper.
+
+**Parameters:**
+- `prompt` (string, required)
+- `imageUrls` (array of URLs, optional, max 4)
+- `duration` (integer seconds, optional, 1-120)
+- `aspectRatio` (enum, optional)
+- `look` (string, optional)
+- `resolution` (enum, optional): `720p`, `1080p`, `4k`, `8k`, `auto`
+- `frameRate` (enum, optional): 12, 15, 24, 25, 30, 48, 50, 60
+- `callBackUrl` (URL, optional)
+
+### `get_task_status`
+Check the status of any generation task by task ID.
+
+### `list_tasks`
+List recent tasks with optional status filtering.
+
+### `get_veo3_1080p_video`
+Retrieve a 1080p upgrade for Veo3 videos (when available).
 
 ## API Endpoints
 
 The server interfaces with these Kie.ai API endpoints:
 
-- **Veo3 Video Generation**: `POST /api/v1/veo/generate` ✅ **VALIDATED**
-- **Veo3 Video Status**: `GET /api/v1/veo/record-info` ✅ **VALIDATED**  
-- **Veo3 1080p Upgrade**: `GET /api/v1/veo/get-1080p-video` ✅ **VALIDATED**
-- **Nano Banana Generation**: `POST /api/v1/playground/createTask` ✅ **VALIDATED**
-- **Nano Banana Status**: `GET /api/v1/playground/recordInfo` ✅ **VALIDATED**
-
-All endpoints have been tested and validated with live API responses.
+- **Nano Banana Generation/Edit**: `POST /api/v1/playground/createTask`
+- **Nano Banana Status**: `GET /api/v1/playground/recordInfo`
+- **GPT-4o Image Generation**: `POST /api/v1/gpt4o-image/generate`
+- **Flux Kontext Generation**: `POST /api/v1/flux/kontext/generate`
+- **Flux Kontext Editing**: `POST /api/v1/flux/kontext/edit`
+- **Midjourney Image Generation**: `POST /api/v1/midjourney/generate`
+- **Veo3 Video Generation**: `POST /api/v1/veo/generate`
+- **Veo3 Video Status**: `GET /api/v1/veo/record-info`
+- **Veo3 1080p Upgrade**: `GET /api/v1/veo/get-1080p-video`
+- **Runway Aleph Video Generation**: `POST /api/v1/runway/aleph/generate`
+- **Luma Video Generation**: `POST /api/v1/luma/generate`
 
 ## Database Schema
 
@@ -177,7 +342,7 @@ The server uses SQLite to track tasks:
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   task_id TEXT UNIQUE NOT NULL,
-  api_type TEXT NOT NULL,  -- 'nano-banana', 'nano-banana-edit', 'veo3'
+  api_type TEXT NOT NULL,  -- e.g. 'nano-banana', 'gpt4o-image', 'runway-aleph-video'
   status TEXT DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -285,7 +450,7 @@ See https://kie.ai/billing for detailed pricing.
 ## Support
 
 For issues related to:
-- **MCP Server**: Open an issue at https://github.com/andrewlwn77/kie-ai-mcp-server/issues
+- **MCP Server**: Open an issue at https://github.com/pedrocacintra/kie-ai-mcp-server-pro/issues
 - **Kie.ai API**: Contact support@kie.ai or check https://docs.kie.ai/
 - **API Keys**: Visit https://kie.ai/api-key
 
