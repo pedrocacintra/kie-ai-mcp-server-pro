@@ -36,9 +36,9 @@ export class KieAiClient {
     body?: any
   ): Promise<KieAiResponse<T>> {
     const url = `${this.config.baseUrl}${endpoint}`;
-    
+
     const headers: HeadersInit = {
-      'Authorization': `Bearer ${this.config.apiKey}`,
+      Authorization: `Bearer ${this.config.apiKey}`,
       'Content-Type': 'application/json'
     };
 
@@ -54,12 +54,12 @@ export class KieAiClient {
 
     try {
       const response = await fetch(url, requestOptions);
-      const data = await response.json() as KieAiResponse<T>;
-      
+      const data = (await response.json()) as KieAiResponse<T>;
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${data.msg || 'Unknown error'}`);
       }
-      
+
       return data;
     } catch (error) {
       if (error instanceof Error) {

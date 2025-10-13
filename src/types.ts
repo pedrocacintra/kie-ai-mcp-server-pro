@@ -17,13 +17,7 @@ export const ImageSizeEnum = z.enum([
 
 export const OutputFormatEnum = z.enum(['png', 'jpeg']);
 
-export const VideoResolutionEnum = z.enum([
-  '720p',
-  '1080p',
-  '4k',
-  '8k',
-  'auto'
-]);
+export const VideoResolutionEnum = z.enum(['720p', '1080p', '4k', '8k', 'auto']);
 
 export const VideoFrameRateValues = [12, 15, 24, 25, 30, 48, 50, 60] as const;
 
@@ -95,7 +89,6 @@ export const MidjourneyImageSchema = z.object({
 });
 
 export const Dalle3QualityEnum = z.enum(['standard', 'hd']);
-
 export const Dalle3StyleEnum = z.enum(['vivid', 'natural']);
 
 export const Dalle3ImageSchema = z.object({
@@ -108,11 +101,7 @@ export const Dalle3ImageSchema = z.object({
   callBackUrl: z.string().url().optional()
 });
 
-export const IdeogramModelEnum = z.enum([
-  'ideogram-2',
-  'ideogram-3',
-  'ideogram-3-rapid'
-]);
+export const IdeogramModelEnum = z.enum(['ideogram-2', 'ideogram-3', 'ideogram-3-rapid']);
 
 export const IdeogramImageSchema = z.object({
   prompt: z.string().min(1).max(4000),
